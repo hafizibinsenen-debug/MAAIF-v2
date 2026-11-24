@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Framework Pilot Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, orderly, a staff-room workshop with a sense of occasion
+   IDEA: a madrasah exercise book — numbered questions, then a shared planning sheet
+   PICTURE: a band of eight-point khatam stars across the top; the working form is the main picture
+   COLOUR and TYPE: deep madrasah green, white paper, one coral accent for "correct"/actions; Manrope throughout
+   LAYOUT: slim header band, one calm column for teachers; wide two-pane board for the facilitator */
+:root{color-scheme:light dark;
+--bg:light-dark(#f6f7f5,#0d1512);--paper:light-dark(#ffffff,#15211c);--ink:light-dark(#13201b,#e8efeb);
+--soft:light-dark(#5a6b64,#9fb2aa);--line:light-dark(#dde4e0,#26362f);--green:#0e4d3c;--green2:light-dark(#e3efe9,#1b3a30);
+--accent:#d9472b;--accentSoft:light-dark(#fbe6e1,#3a1f19);--ok:light-dark(#0e7a52,#4cc597);--okSoft:light-dark(#dcf3e8,#173a2c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{background:var(--green);color:#fff;position:relative;overflow:hidden}
+.top svg.pat{position:absolute;inset:0;width:100%;height:100%;opacity:.22}
+.topin{position:relative;max-width:1240px;margin:0 auto;padding:22px max(5vw,16px) 0}
+.brand{font-size:13px;opacity:.85;font-weight:600}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.08;margin:4px 0 6px;text-wrap:balance}
+.who{font-size:14px;opacity:.9;min-height:22px}
+.tabs{display:flex;gap:4px;margin-top:16px;flex-wrap:wrap}
+.tab{border:0;background:transparent;color:#fff;padding:12px 18px;border-radius:10px 10px 0 0;font-weight:700;cursor:pointer;min-height:44px;opacity:.8}
+.tab[aria-selected=true]{background:var(--bg);color:var(--ink);opacity:1}
+.tab:focus-visible,.btn:focus-visible,.opt:focus-within,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{max-width:1240px;margin:0 auto;padding:28px max(5vw,16px) 60px}
+.col{max-width:760px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+h2{font-size:24px;line-height:1.15;margin:0 0 6px}
+h3{font-size:17px;margin:0 0 10px;line-height:1.35}
+.muted{color:var(--soft);font-size:14px}
+.qn{display:inline-block;font-weight:800;color:var(--green);margin-right:6px}
+:root[data-theme=dark] .qn{color:#6fd1ab}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .qn{color:#6fd1ab}}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-top:8px;cursor:pointer;min-height:44px}
+.opt input{margin-top:4px;width:18px;height:18px;accent-color:var(--green);flex:none}
+.opt.sel{border-color:var(--green);background:var(--green2)}
+.opt.right{border-color:var(--ok);background:var(--okSoft)}
+.opt.wrong{border-color:var(--accent);background:var(--accentSoft)}
+.why{margin-top:10px;font-size:14px;padding:10px 12px;border-radius:8px;background:var(--green2)}
+textarea,input[type=text],input[type=password]{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:12px 14px;font-size:16px}
+textarea{min-height:110px;resize:vertical}
+textarea:focus,input:focus{outline:3px solid color-mix(in srgb,var(--green) 45%,transparent);border-color:var(--green)}
+.btn{border:0;background:var(--green);color:#fff;font-weight:700;padding:12px 20px;border-radius:10px;cursor:pointer;min-height:44px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.warm{background:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid6{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-weight:700;min-height:44px}
+.chip small{display:block;font-weight:500;color:var(--soft);font-size:13px}
+.chip[aria-pressed=true]{border-color:var(--green);background:var(--green2)}
+.banner{padding:12px 16px;border-radius:10px;background:var(--accentSoft);margin-bottom:16px;font-size:15px}
+.banner.ok{background:var(--okSoft)}
+.hidden{display:none!important}
+.field label{font-weight:800;display:block;font-size:17px}
+.field .meta{font-size:13px;color:var(--soft);margin:2px 0 8px;min-height:18px}
+.ref{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px 14px}.ref summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}.ref p{font-size:14px;margin:8px 0}.ref table{font-size:14px;margin:6px 0 4px}
+.hintbtn{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:6px 0;min-height:36px;font-size:14px}
+.hint{font-size:14px;border-left:3px solid var(--accent);padding:6px 12px;margin:6px 0;background:var(--accentSoft);border-radius:0 8px 8px 0}
+.save{font-size:13px;color:var(--soft)}
+/* facilitator */
+.fgrid{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:20px}
+@media(max-width:860px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.side .card{padding:16px}
+.stat{font-size:clamp(30px,4vw,44px);font-weight:800;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:10px;align-items:center;margin:7px 0;font-size:14px}
+.track{background:var(--green2);border-radius:6px;height:30px;position:relative;overflow:hidden}
+.fill{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--soft) 45%,transparent)}
+.fill.c{background:var(--ok)}
+.track span{position:absolute;left:10px;top:50%;transform:translateY(-50%);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 16px);font-weight:600}
+.pct{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px}
+.note{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--green);border-radius:10px;padding:14px 16px;white-space:pre-wrap;overflow-wrap:anywhere}
+.note b{display:block;font-size:13px;color:var(--soft);margin-bottom:4px;white-space:normal}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg .chip{padding:8px 12px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.planview .pf{margin-bottom:14px}
+.planview .pf h3{margin-bottom:4px;color:var(--green)}
+.planview .pf div{white-space:pre-wrap;overflow-wrap:anywhere}
+body.big main{font-size:20px}body.big .note{font-size:21px}body.big .planview .pf div{font-size:22px}body.big h3{font-size:22px}
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;min-height:44px;font-weight:600}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+footer{max-width:1240px;margin:0 auto;padding:0 max(5vw,16px) 40px;font-size:13px;color:var(--soft)}
+footer button{background:none;border:0;color:var(--soft);text-decoration:underline;cursor:pointer;min-height:44px;font-size:13px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px;z-index:5}
+.modal .card{width:min(420px,100%)}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal}.stack td:empty{display:none}.stats{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.fill{transition:width .5s ease}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
+<body>
+<header class="top">
+  <svg class="pat" aria-hidden="true"><defs><pattern id="k" width="56" height="56" patternUnits="userSpaceOnUse"><g fill="none" stroke="#fff" stroke-width="1.3" transform="translate(28 28)"><rect x="-14" y="-14" width="28" height="28"/><rect x="-14" y="-14" width="28" height="28" transform="rotate(45)"/><circle r="5"/></g></pattern></defs><rect width="100%" height="100%" fill="url(#k)"/></svg>
+  <div class="topin">
+    <div class="brand">Madrasah Alsagoff Al-Arabiah · AI &amp; EdTech Framework v2.0 · Aligned with MOE EdTech Masterplan 2030</div>
+    <h1>Pilot Workshop</h1>
+    <div class="who" id="who"></div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-v="p1" aria-selected="false">Part 1 · Check your understanding</button>
+      <button class="tab" role="tab" data-v="p2" aria-selected="false">Part 2 · Group lesson plan</button>
+      <button class="tab hidden" role="tab" data-v="fac" aria-selected="false" id="facTab">Facilitator</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div id="status" class="banner hidden"></div>
+
+  <!-- JOIN -->
+  <section id="v-join" class="col hidden">
+    <div class="card">
+      <h2>Assalamualaikum! Let's get started</h2>
+      <p class="muted">No password needed. Type your name and pick your group.</p>
+      <label for="nm" style="font-weight:700">Your name</label>
+      <input type="text" id="nm" autocomplete="name" placeholder="e.g. Ustazah Aisyah" maxlength="60" style="margin-top:6px">
+      <div style="font-weight:700;margin-top:16px">Your group</div>
+      <div class="grid6" id="grpPick"></div>
+      <div class="row" style="margin-top:18px"><button class="btn" id="joinBtn">Continue</button><span class="muted" id="joinMsg"></span></div>
+    </div>
+  </section>
+
+  <!-- PART 1 -->
+  <section id="v-p1" class="col hidden">
+    <div class="card" style="background:var(--green2);border-color:transparent">
+      <h2>Part 1 · Check your understanding</h2>
+      <p style="margin:0">Answer on your own. There are 7 multiple-choice questions on the MOE-aligned framework (the Four Learns, age-appropriate use, safeguards and assessment), then 3 short questions on using it in your classroom. Each question has hints that you can open one at a time. You can change your answers and submit again.</p>
+    </div>
+    <div id="mcqs"></div>
+    <div id="opens"></div>
+    <div class="row"><button class="btn" id="submitBtn">Submit my answers</button><span class="save" id="subMsg"></span></div>
+  </section>
+
+  <!-- PART 2 -->
+  <section id="v-p2" class="col hidden">
+    <div id="p2wait" class="card hidden"><h2>Part 2 will open shortly</h2><p class="muted" style="margin:0">Your facilitator will open the group task after Part 1. This page will change on its own.</p></div>
+    <div id="p2body">
+      <div class="card" style="background:var(--green2);border-color:transparent">
+        <h2 id="p2title">Part 2 · Group lesson plan</h2>
+        <p style="margin:0">Plan <b>one pilot lesson</b> for your context that follows the MOE tier for your students' level. Everyone in your group can type, and changes save automatically. Each box has hints, starting with one written for your group.</p>
+        <details class="ref"><summary>Quick reference: tiers, Four Learns and assessment levels</summary>
+          <table class="stack"><thead><tr><th>Level</th><th>Student AI use</th><th>Student tools</th></tr></thead><tbody>
+            <tr><td>P1 to 3</td><td>Learn about AI only. No direct student use, and no assigned work requires AI.</td><td>None. Teachers may use AI for planning.</td></tr>
+            <tr><td>P4 to 6</td><td>Supervised, education-specific AI, after the AI literacy module. Guardrailed tutors that don't give direct answers.</td><td>SLS AI features; school-vetted, guardrailed tools</td></tr>
+            <tr><td>Secondary</td><td>Purposeful use where the task allows. Students state where AI was used and cite sources.</td><td>SLS and vetted tools, only where the task allows</td></tr>
+          </tbody></table>
+          <p><b>Four Learns:</b> About AI ('Ilm &amp; Tabayyun) · To use AI (Amanah) · With AI (Ihsan) · Beyond AI (Adab &amp; Akhlaq), which MOE calls the most important.</p>
+          <p><b>Assessment:</b> ✕ No AI (national exams, proctored tests, all P1 to 3 work) · ✎ AI-assisted, declared (secondary coursework where allowed) · ✓ AI-integrated (practice, drafting and feedback from P4).</p>
+          <p><b>Always:</b> think first, then AI · no personal data in external tools · tools vetted before use · ARK follows the students' level tier.</p>
+        </details>
+        <div class="row" style="margin-top:12px"><span class="muted">Working on:</span><select id="grpSel" style="padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--paper);min-height:44px"></select></div>
+      </div>
+      <div id="canvas"></div>
+    </div>
+  </section>
+
+  <!-- FACILITATOR -->
+  <section id="v-fac" class="hidden">
+    <div class="fgrid">
+      <aside class="side">
+        <div class="card">
+          <h3>Teachers' screens</h3>
+          <div class="seg" id="phaseSeg">
+            <button class="chip" data-ph="p1" aria-pressed="false">Part 1</button>
+            <button class="chip" data-ph="p2" aria-pressed="false">Part 2</button>
+          </div>
+          <label class="toggle" style="margin-top:8px"><input type="checkbox" id="revealT"> Show correct answers to teachers</label>
+          <label class="toggle"><input type="checkbox" id="bigT"> Projector mode (large text)</label>
+          <p class="save" id="ctlMsg"></p>
+        </div>
+        <div class="card">
+          <h3>Show</h3>
+          <div class="seg" id="facNav" style="flex-direction:column">
+            <button class="chip" data-f="mcq" aria-pressed="true">MCQ results</button>
+            <button class="chip" data-f="open" aria-pressed="false">Open-ended answers</button>
+            <button class="chip" data-f="people" aria-pressed="false">Who has submitted</button>
+            <button class="chip" data-f="plans" aria-pressed="false">Group lesson plans</button>
+          </div>
+        </div>
+        <a class="btn ghost hidden" id="sheetLink" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Open the Google Sheet</a>
+        <p class="save">All answers and plans are saved in the Google Sheet too.</p>
+      </aside>
+      <div>
+        <div id="f-mcq"></div>
+        <div id="f-open" class="hidden"></div>
+        <div id="f-people" class="hidden"></div>
+        <div id="f-plans" class="hidden"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer><span>Tradition rooted, future ready. Preserving heritage, empowering futures through ethical AI.</span> · <button id="facLink">Facilitator login</button> · <button id="changeMe">Change name or group</button></footer>
+
+<div class="modal hidden" id="pwModal" role="dialog" aria-modal="true" aria-labelledby="pwH">
+  <div class="card">
+    <h2 id="pwH">Facilitator login</h2>
+    <p class="muted">Enter the facilitator password.</p>
+    <input type="password" id="pw" autocomplete="current-password">
+    <div class="row" style="margin-top:12px"><button class="btn" id="pwGo">Unlock</button><button class="btn ghost" id="pwX">Cancel</button><span class="save" id="pwMsg"></span></div>
+  </div>
+</div>
+
+<script>
+{
+/* ===== Back end: Google Apps Script web app (Code.gs). text/plain avoids a CORS preflight. ===== */
+const API="https://script.google.com/macros/s/AKfycbyUoNJvS4ZDiZxn2svyutrFCMFwJQLSTAMdu_Ch-Qzss55uP0NTnaEOjFBw0J34T7C_kg/exec";
+async function run(fn,...args){
+  const r=await fetch(API,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({fn,args})});
+  let j;try{j=await r.json()}catch(e){throw new Error("The server didn't reply properly. Check that Code.gs is deployed as a new version with access set to Anyone.")}
+  if(!j.ok)throw new Error(j.error||"Server error");
+  return j.data;
+}
+
+const GROUPS=[
+ {id:"ark-lower",name:"ARK Lower",sub:"Islamic studies, lower levels"},
+ {id:"ark-upper",name:"ARK Upper",sub:"Islamic studies, upper levels"},
+ {id:"pri-lower",name:"Primary Lower",sub:"P1 to P3 · no direct student AI use"},
+ {id:"pri-upper",name:"Primary Upper",sub:"P4 to P6 · supervised, education-specific AI"},
+ {id:"sec-lower",name:"Secondary Lower",sub:"Sec 1 to 2 · purposeful, declared and cited"},
+ {id:"sec-upper",name:"Secondary Upper",sub:"Sec 3 to 4 · purposeful, declared and cited"}];
+const gName=id=>(GROUPS.find(g=>g.id===id)||{}).name||"No group";
+
+/* ===== Part 1: questions. Correct answers and explanations live in Code.gs and are sent only on reveal. ===== */
+const MCQ=[
+ {q:"MOE describes one of the Four Learns as the most important. Which one?",
+  o:["Learn about AI","Learn to use AI","Learn with AI","Learn beyond AI"],
+  h:["In the Four Learns slide, one card is shaded darker than the other three.","Ask yourself which Learn is about what AI can never replace in a person.","Its Islamic anchor is Adab & Akhlaq: character and conduct."]},
+ {q:"A P2 teacher wants her pupils to use a chatbot to help write a short story. Under the age-appropriate use guide, what applies?",
+  o:["Allowed, as long as she supervises closely","Allowed, but only with SLS AI features","Not allowed: P1 to P3 have no direct student AI use, though she may use AI for her own planning","Allowed if parents give consent"],
+  h:["Find the column for Primary 1 to 3 in the 'Age-appropriate AI use by level' slide.","Look at the row 'Student tools' for that column. What does it say?","Teachers and pupils have different rules. Who is allowed to use AI at this level?"]},
+ {q:"Before a P4 student uses an AI tool for the first time, what must she complete?",
+  o:["An AI literacy module","A parental sign-off form only","A typing and computer skills test","Nothing, if the tool is built for education"],
+  h:["Look at the Primary 4 to 6 column, and at the AI literacy KPI.","The Learn linked to this step is 'Learn to use AI', with the anchor Amanah.","The KPI says 100% of P4+ students complete it 'before first AI use'."]},
+ {q:"Pillar 2 asks for \"Think first, then AI\". What does this look like in a lesson?",
+  o:["AI writes a first draft, which students then improve","Students attempt, struggle and discuss first, then get AI feedback","The teacher checks the AI answers before the lesson starts","Students think about which AI tool to choose before starting"],
+  h:["This principle is built on a pedagogy the madrasah already uses: Productive Failure.","Who does the thinking first, the student or the AI?","MOE's concern here is over-reliance. Which option protects most strongly against it?"]},
+ {q:"To save time, a teacher wants to paste her pupils' essays, with their names, into ChatGPT for feedback. Under Pillar 7, what is right?",
+  o:["It's fine, because it saves the teacher time","It's fine if she deletes the chat afterwards","Not allowed: no personal data goes into external AI tools","It's fine because the tool is widely used"],
+  h:["Pillar 7 was renamed 'Governance & Safeguards'. Read its checklist.","Is ChatGPT an external tool or a school-built tool?","The Data safety KPI aims for zero cases of what?"]},
+ {q:"A Sec 3 student uses AI to help draft coursework, and the task allows it. What must she do?",
+  o:["Nothing extra: if the task allows AI, no further step is needed","State where AI was used and cite her sources","Submit the AI output without changes so it can be checked","Ask her parents to sign the work"],
+  h:["Look at the Secondary column and at the middle level of the Assessment slide.","This is the value Amanah: trust, honesty and owning your work.","The Integrity KPI says 100% of AI-permitted secondary tasks carry what?"]},
+ {q:"Which assessment level applies to PSLE, O-Level and other proctored tests?",
+  o:["AI-integrated learning","AI-assisted, declared","No AI","Up to each subject teacher"],
+  h:["The Assessment & Academic Integrity slide has three levels: ✕, ✎ and ✓.","National exams remain proctored, according to MOE.","Which level also covers all assigned work in P1 to 3?"]}];
+
+const OPEN=[
+ {q:"Choose a lesson you will teach soon. Which of the Four Learns would it develop, and how would AI use fit your students' level tier?",
+  h:["Step 1: name your class's tier. P1 to 3: learn about AI, no direct student use. P4 to 6: supervised, education-specific tools. Secondary: purposeful use, declared and cited.",
+     "Step 2: pick ONE Learn. About AI (what AI is, its limits), To use AI (safe prompting), With AI (feedback on drafts) or Beyond AI (values, judgement).",
+     "Sentence starter: \"In my ___ lesson on ___ for ___, students will learn ___ AI by ___. AI is used by (me / students), which fits the ___ tier because ___.\""]},
+ {q:"\"Think first, then AI.\" How would you make sure students attempt and discuss before any AI is used, so they don't over-rely on it?",
+  h:["Picture Productive Failure: give a challenging problem before any instruction or AI.",
+     "Describe what students do BEFORE AI (attempt, compare, discuss) and what AI does AFTER (feedback, a check, a different view).",
+     "Sentence starter: \"Students first ___ on their own or in pairs for ___ minutes. Only then ___, and AI never replaces ___.\""]},
+ {q:"Which Islamic anchor is most at risk in your subject: Tabayyun, Amanah, Ihsan or Adab & Akhlaq? What safeguard would you put in place?",
+  h:["Recall the anchors: Tabayyun means verify before you accept. Amanah means trust, declaring AI use and no personal data. Ihsan means doing better work, not easier work. Adab & Akhlaq means character and conduct.",
+     "Think of a real moment in your subject where things could go wrong, for example copying an AI answer, an unchecked religious text, or a student's name typed into a tool.",
+     "Name a concrete safeguard: an AI-use declaration, a verification step against a trusted source, the No-AI assessment level, or a vetted tool only."]}];
+
+/* ===== Part 2: lesson plan canvas ===== */
+const FIELDS=[
+ {id:"title",label:"Lesson title, class and AI-use tier",ph:"e.g. P5 Science: Why do some things float? · Tier: P4–6 supervised",h:["Choose a lesson you will actually teach in the next 4 to 6 weeks.","Phase 1 pilot classes are P4 to 6 and Secondary. P1 to 3 pilots focus on teacher-side use and Learn about AI without student AI use.","Write the tier next to the class so everyone can check the rest of the plan against it."]},
+ {id:"objective",label:"Learning objective(s)",ph:"By the end of the lesson, students will be able to…",h:["Start with 'Students will be able to…' and use a verb you can observe: explain, compare, recite, justify.","The subject objective comes first. AI serves the objective, not the other way round.","Optionally add one AI-literacy objective, such as 'spot an error in an AI answer'."]},
+ {id:"learns",label:"Four Learns focus and Islamic anchor",ph:"Learn ___ AI · Anchor: ___",h:["Pick one or two Learns. About AI: concepts, bias, hallucinations. To use AI: safe prompting, protecting data. With AI: feedback on attempts. Beyond AI: values, judgement, reflection.","Match each Learn to its anchor: About = 'Ilm & Tabayyun, To use = Amanah, With = Ihsan, Beyond = Adab & Akhlaq.","Learn beyond AI is the one MOE calls most important. Can your lesson include a moment of reflection or moral judgement?"]},
+ {id:"who",label:"Who uses AI, and is it allowed at this level?",ph:"Teacher only / students under supervision / students where the task allows, declared",h:["Check the level tier. P1 to 3: no direct student use. P4 to 6: only education-specific tools, under supervision, after the AI literacy module. Secondary: only where the task allows, declared and cited.","Teachers may use AI for planning at every level, but never with student personal data.","ARK subjects follow the same tier as the students' level."]},
+ {id:"flow",label:"Lesson flow: think first, then AI",ph:"Opening (…min) → Students attempt (…min) → Discussion → AI step (…min) → Reflection (…min)",h:["Name your pedagogy: Productive Failure, Inquiry-Based Learning, Socratic Discussion, Mastery Learning, Flipped Classroom or UDL.","Mark the exact moment AI comes in. Students should already have attempted and discussed before that moment.","End with a human step: reflection, peer discussion or teacher feedback. AI never replaces teacher feedback."]},
+ {id:"tool",label:"Tool, vetting and data check",ph:"Tool: ___ · Vetted? ___ · Personal data entered? None",h:["Teacher-side tools: Claude, ChatGPT, Gemini, Gamma, NotebookLM, Canva for Education, Kahoot!, Quizizz. These are for teacher work only.","Student-side tools: SLS AI features or school-vetted, guardrailed tools (for example ScaffoldAI builds) that don't hand out answers.","Write down two checks: Has the tool been vetted? Will any personal data be entered? (The answer must be no.)"]},
+ {id:"integrity",label:"Assessment level and academic integrity",ph:"Level: No AI / AI-assisted, declared / AI-integrated · How students declare: ___",h:["Choose one of three levels. ✕ No AI: national exams, proctored tests, all P1 to 3 assigned work. ✎ AI-assisted, declared: secondary coursework where allowed. ✓ AI-integrated: practice, drafting and feedback from P4.","For Secondary: how will students state where AI was used and cite their sources?","Plan how you will explain to students that passing off AI work as their own is academic dishonesty (Amanah)."]},
+ {id:"evidence",label:"Evidence of success",ph:"We will know it worked if…",h:["Link to the KPIs: teacher adoption, AI literacy, integrity, data safety, and learning without over-reliance.","Include one sign of learning, such as an exit ticket, mastery or transfer, and one sign that students did not over-rely on AI.","Keep it easy to collect: a short reflection, a comparison with last year's class, or the number of declarations submitted."]}];
+
+const GHINT={
+ "ark-lower":{
+  title:"ARK follows your students' level tier. If the class is P1 to 3, the pilot is teacher-side only. If P4 to 6, supervised education-specific tools are possible.",
+  objective:"Example: 'Students will be able to explain the meaning of a du'a in their own words', or 'recognise 10 new Arabic words in context'.",
+  learns:"Learn beyond AI fits naturally: adab in seeking knowledge. Learn about AI can be simple: 'Can a machine have niyyah?'",
+  who:"Most likely teacher only: you use AI to prepare vocabulary practice or differentiated worksheets, and pupils use none.",
+  flow:"Pupils recite, try and discuss first. Any AI-made material is used as a practice resource after your explanation, not before it.",
+  tool:"Teacher tools only. Check every Arabic or religious text yourself before it reaches pupils.",
+  integrity:"For P1 to 3 all assigned work is No AI. Explain to pupils, in simple words, why we check what we read (tabayyun).",
+  evidence:"Examples: vocabulary recall in an exit ticket, minutes of preparation saved, pupils' own explanation of meaning."},
+ "ark-upper":{
+  title:"ARK follows your students' level tier. Secondary classes can use AI purposefully, declared and cited, but only where the task allows.",
+  objective:"Example: 'Students will be able to connect a lesson from an ayah to a real situation in their lives'.",
+  learns:"Learn beyond AI is central: moral judgement and reflection. Learn about AI: why AI must never be treated as a source of rulings.",
+  who:"Possible: students use a vetted tool to organise ideas for a tafsir presentation, but never as a source of fatwa or rulings.",
+  flow:"Students read and reflect on the ayah and discuss it first. AI may then suggest structure or questions. Every religious point is checked against established (muktabar) sources.",
+  tool:"Vetted tools only, with no personal data. Plan who checks the AI output against which trusted sources (tabayyun).",
+  integrity:"Likely AI-assisted, declared: students state where AI helped and cite their references for every religious point.",
+  evidence:"Examples: quality of students' personal reflections, accuracy of sources cited, and complete declarations."},
+ "pri-lower":{
+  title:"P1 to 3: no direct student AI use, and all assigned work is No AI. Your pilot is about teacher use and learning ABOUT AI.",
+  objective:"Keep the subject objective. Optionally add 'Pupils can name one way AI is used in daily life'.",
+  learns:"Learn about AI: recognise AI in daily life and spot AI-made pictures (cyber wellness). Learn beyond AI: kindness, honesty, asking an adult.",
+  who:"Teacher only. Pupils never use AI tools. You may use AI to simplify texts, make visuals or create levelled worksheets.",
+  flow:"Hands-on, physical learning comes first. Any AI-made material is just a resource you have prepared and checked.",
+  tool:"Teacher tools such as Canva for Education or Claude, with no pupil names or data. Check images and examples suit Islamic values and the age group.",
+  integrity:"No AI for all pupil work. Your integrity point is teacher-side: check AI-made content for accuracy before use.",
+  evidence:"Examples: preparation time saved, pupils' engagement with differentiated materials, pupils able to say what AI is."},
+ "pri-upper":{
+  title:"P4 to 6: supervised, education-specific AI is allowed, and only after the AI literacy module. Phase 1 pilot classes include P4 to 6.",
+  objective:"Example: 'Pupils will be able to improve a paragraph using feedback and explain what they changed'.",
+  learns:"Learn to use AI: the literacy module and safe prompting. Learn with AI: guardrailed feedback on their own drafts.",
+  who:"Pupils, under your supervision, using SLS AI features or a school-vetted, guardrailed tutor. No general-purpose chatbots.",
+  flow:"Pupils write or solve on their own first, then get guardrailed AI feedback, then discuss with a partner what to keep or change.",
+  tool:"For example SLS Learning Assistant, or a vetted ScaffoldAI build that doesn't give direct answers. Confirm the module is done first.",
+  integrity:"Practice and feedback tasks can be AI-integrated. Graded work is No AI unless the task allows it. Teach a simple rule: 'AI helps me think. I still check.'",
+  evidence:"Examples: percentage of pupils who completed the literacy module, improvement between drafts, pupils' explanations of their changes."},
+ "sec-lower":{
+  title:"Secondary: purposeful AI use, only where the task allows, declared and cited. Phase 1 pilot classes include Secondary.",
+  objective:"Example (Science): 'Students will be able to explain a misconception about forces and correct it with evidence'.",
+  learns:"Learn about AI: bias and hallucinations, by catching an error in an AI answer. Learn with AI: feedback after an attempt. A good group to launch the student AI ethics module.",
+  who:"Students, where the task allows, using SLS or vetted guardrailed tools. You may use general chatbots for your own planning.",
+  flow:"Productive Failure: students solve or explain first and compare answers in groups, then use AI for feedback or a counter-view, then consolidate with the teacher.",
+  tool:"A vetted guardrailed tool, for example the Science Misconception Analyzer concept or a ScaffoldAI build. No personal data.",
+  integrity:"Practice tasks can be AI-integrated. Any graded or coursework use is AI-assisted and declared: students state where AI was used.",
+  evidence:"Examples: fewer misconceptions in an exit ticket, quality of students' critique of AI answers, declarations submitted."},
+ "sec-upper":{
+  title:"Secondary: purposeful AI use, only where the task allows, declared and cited. Remember that O-Level and proctored tests are No AI.",
+  objective:"Example: 'Students will be able to evaluate how reliable an argument is, including one written by AI'.",
+  learns:"Learn about AI: judging AI output critically. Learn beyond AI: moral judgement, debate, Digital Da'wah responsibility.",
+  who:"Students, where the task allows: for example debate preparation or critiquing an AI-written answer. Declared and cited.",
+  flow:"Students build their own argument first, then test it against an AI counter-argument, then refine and reflect on what only humans can judge.",
+  tool:"Vetted tools only. Check SEAB coursework rules for your subject before allowing AI.",
+  integrity:"AI-assisted, declared: students submit a short AI-use statement with their prompts and sources. Passing off AI work is academic dishonesty.",
+  evidence:"Examples: quality of argument and evaluation, 100% of AI-permitted tasks with declarations, student reflections on over-reliance."}};
+
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let myId=LS.get("mapw_id");
+if(!myId){myId=(Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^a-z0-9]/g,"");LS.set("mapw_id",myId)}
+
+let me=LS.get("mapw_me")||{name:"",group:""};
+let ans={mcq:Array(MCQ.length).fill(null),open:Array(OPEN.length).fill("")};
+let submitted=false,ctl={phase:"p1",reveal:false},key=null,view="p1";
+let token=null,admin=null;
+let plans={},planGroup=me.group||GROUPS[0].id,facSec="mcq",openQ=0,openG="all",planG=GROUPS[0].id;
+
+function status(msg){const s=$("#status");if(!msg){s.classList.add("hidden");return}s.textContent=msg;s.classList.remove("hidden")}
+
+/* ===== shared scaffolded hints: revealed one at a time ===== */
+const HL={};
+function hintBlock(k,list){HL[k]=list;return `<div data-hints="${k}"></div><button class="hintbtn" data-hint="${k}">Need a hint? (${list.length} available)</button>`}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-hint]");if(!b)return;
+  const k=b.dataset.hint,list=HL[k]||[],box=document.querySelector(`[data-hints="${k}"]`);if(!box)return;
+  const n=box.children.length;if(n>=list.length)return;
+  const p=document.createElement("div");p.className="hint";p.textContent=`Hint ${n+1}: ${list[n]}`;box.appendChild(p);
+  const left=list.length-n-1;b.textContent=left?`Another hint (${left} left)`:"No more hints";b.disabled=!left;
+});
+
+/* ===== views ===== */
+function show(v){
+  if(v==="fac"&&!token)v="p1";
+  if(!me.name&&v!=="fac")v="join";
+  view=v;
+  ["join","p1","p2","fac"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!==v));
+  $$(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.v===v));
+  $("#tabs").classList.toggle("hidden",v==="join");
+  $("#who").textContent=me.name?`${me.name} · ${gName(me.group)}`:"";
+  if(v==="p1")renderP1();
+  if(v==="p2"){renderP2();pollPlans()}
+  if(v==="fac"){renderFac();pollAdmin()}
+}
+$$(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.v)));
+
+/* ===== join ===== */
+function renderJoin(){
+  $("#nm").value=me.name||"";
+  $("#grpPick").innerHTML=GROUPS.map(g=>`<button class="chip" data-g="${g.id}" aria-pressed="${me.group===g.id}">${esc(g.name)}<small>${esc(g.sub)}</small></button>`).join("");
+}
+$("#grpPick").addEventListener("click",e=>{const b=e.target.closest("[data-g]");if(!b)return;me.group=b.dataset.g;$$("#grpPick .chip").forEach(c=>c.setAttribute("aria-pressed",c===b))});
+$("#joinBtn").addEventListener("click",()=>{
+  const n=$("#nm").value.trim();
+  if(!n){$("#joinMsg").textContent="Please type your name.";return}
+  if(!me.group){$("#joinMsg").textContent="Please pick your group.";return}
+  me.name=n;LS.set("mapw_me",me);planGroup=me.group;$("#joinMsg").textContent="";
+  show(ctl.phase==="p2"?"p2":"p1");
+});
+$("#changeMe").addEventListener("click",()=>{renderJoin();view="join";["join","p1","p2","fac"].forEach(x=>$("#v-"+x).classList.toggle("hidden",x!=="join"));$("#tabs").classList.add("hidden")});
+
+/* ===== part 1 ===== */
+function renderP1(){
+  const rev=ctl.reveal&&submitted&&key;
+  $("#mcqs").innerHTML=MCQ.map((m,i)=>`<div class="card"><h3><span class="qn">${i+1}.</span>${esc(m.q)}</h3>${m.o.map((o,j)=>{
+    let cls=ans.mcq[i]===j?"sel":"";
+    if(rev){if(j===key.answers[i])cls="right";else if(ans.mcq[i]===j)cls="wrong"}
+    return `<label class="opt ${cls}"><input type="radio" name="q${i}" value="${j}" ${ans.mcq[i]===j?"checked":""}><span>${esc(o)}</span></label>`}).join("")}
+    ${rev?`<div class="why">${ans.mcq[i]===key.answers[i]?"✓ Correct. ":"Answer: "+esc(m.o[key.answers[i]])+". "}${esc(key.why[i])}</div>`:hintBlock("m"+i,m.h)}</div>`).join("");
+  $("#opens").innerHTML=OPEN.map((o,i)=>`<div class="card"><h3><span class="qn">${MCQ.length+i+1}.</span>${esc(o.q)}</h3><textarea data-o="${i}" maxlength="1500" placeholder="Type your answer…">${esc(ans.open[i])}</textarea>${hintBlock("o"+i,o.h)}</div>`).join("");
+  $("#submitBtn").textContent=submitted?"Update my answers":"Submit my answers";
+}
+$("#mcqs").addEventListener("change",e=>{const r=e.target;if(r.name&&r.name[0]==="q"){const i=+r.name.slice(1);ans.mcq[i]=+r.value;$$(`input[name=q${i}]`).forEach(x=>x.closest(".opt").classList.toggle("sel",x.checked));LS.set("mapw_ans2",ans)}});
+$("#opens").addEventListener("input",e=>{const t=e.target;if(t.dataset.o!=null){ans.open[+t.dataset.o]=t.value;LS.set("mapw_ans2",ans)}});
+$("#submitBtn").addEventListener("click",async()=>{
+  const miss=ans.mcq.findIndex(x=>x===null);
+  if(miss>-1){$("#subMsg").textContent=`Please answer question ${miss+1}.`;return}
+  $("#submitBtn").disabled=true;$("#subMsg").textContent="Saving…";
+  try{await run("submitResponse",{id:myId,name:me.name,group:me.group,mcq:ans.mcq,open:ans.open});
+    submitted=true;LS.set("mapw_sub2",true);$("#subMsg").textContent="Submitted ✓ JazakAllahu khairan. You can still edit and update.";renderP1();
+  }catch(e){$("#subMsg").textContent="Couldn't save: "+(e&&e.message?e.message:"please try again.")}
+  $("#submitBtn").disabled=false;
+});
+
+/* ===== part 2 ===== */
+function fieldHints(g,f){const gh=(GHINT[g]||{})[f.id];return [...(gh?[`For ${gName(g)}: ${gh}`]:[]),...f.h]}
+function renderP2(){
+  const open=ctl.phase==="p2"||!!token;
+  $("#p2wait").classList.toggle("hidden",open);$("#p2body").classList.toggle("hidden",!open);
+  if(!open)return;
+  $("#grpSel").innerHTML=GROUPS.map(g=>`<option value="${g.id}" ${g.id===planGroup?"selected":""}>${esc(g.name)}</option>`).join("");
+  $("#p2title").textContent=`Part 2 · ${gName(planGroup)} pilot lesson plan`;
+  $("#canvas").innerHTML=FIELDS.map((f,i)=>{
+    const d=plans[planGroup+"__"+f.id];
+    return `<div class="card field"><label for="f-${f.id}"><span class="qn">${i+1}.</span>${esc(f.label)}</label>
+    <div class="meta" id="m-${f.id}">${d&&d.by?"Last edited by "+esc(d.by):""}</div>
+    <textarea id="f-${f.id}" data-f="${f.id}" maxlength="4000" placeholder="${esc(f.ph)}">${esc(d?d.text:"")}</textarea>
+    ${hintBlock("p-"+planGroup+"-"+f.id,fieldHints(planGroup,f))}</div>`}).join("");
+}
+$("#grpSel").addEventListener("change",e=>{planGroup=e.target.value;renderP2();pollPlans()});
+const timers={},saving={},dirty={},typing={};
+$("#canvas").addEventListener("input",e=>{const t=e.target;if(!t.dataset.f)return;const k=planGroup+"__"+t.dataset.f;typing[k]=true;$("#m-"+t.dataset.f).textContent="Typing…";clearTimeout(timers[k]);timers[k]=setTimeout(()=>savePlan(planGroup,t.dataset.f),1500)});
+$("#canvas").addEventListener("focusout",e=>{const t=e.target;if(!t.dataset.f)return;const k=planGroup+"__"+t.dataset.f;if(timers[k]){clearTimeout(timers[k]);savePlan(planGroup,t.dataset.f)}});
+async function savePlan(g,fid){
+  const k=g+"__"+fid,ta=$("#f-"+fid);if(!ta||g!==planGroup)return;delete timers[k];
+  const text=ta.value;
+  if(saving[k]){dirty[k]=true;return}
+  if(plans[k]&&plans[k].text===text){typing[k]=false;const m=$("#m-"+fid);if(m)m.textContent="Saved ✓";return}
+  saving[k]=true;
+  try{await run("savePlanField",g,fid,text,me.name||"Someone");plans[k]={text,by:me.name};const m=$("#m-"+fid);if(m)m.textContent="Saved ✓"}
+  catch(e){const m=$("#m-"+fid);if(m)m.textContent="Not saved. Keep typing and it will retry."}
+  saving[k]=false;typing[k]=false;
+  if(dirty[k]){dirty[k]=false;savePlan(g,fid)}
+}
+function applyPlans(fresh){
+  Object.keys(fresh).forEach(k=>{if(!typing[k]&&!saving[k])plans[k]=fresh[k]});
+  if(view==="p2"&&!$("#p2body").classList.contains("hidden")){
+    FIELDS.forEach(f=>{const k=planGroup+"__"+f.id,d=plans[k],ta=$("#f-"+f.id);if(!ta||!d||typing[k]||saving[k])return;
+      if(document.activeElement!==ta&&ta.value!==d.text){ta.value=d.text;$("#m-"+f.id).textContent="Last edited by "+(d.by||"Someone")}});
+  }
+}
+
+/* ===== polling (Apps Script can't push updates) ===== */
+let busyState=false,busyPlans=false,busyAdmin=false;
+async function pollState(){
+  if(busyState)return;busyState=true;
+  try{const s=await run("getState");status("");
+    const prev=ctl.phase,prevRev=ctl.reveal;ctl={phase:s.phase==="p2"?"p2":"p1",reveal:!!s.reveal};key=s.key||null;
+    if(prev!==ctl.phase&&me.name&&(view==="p1"||view==="p2"))show(ctl.phase);
+    else{if(view==="p1"&&prevRev!==ctl.reveal)renderP1();if(view==="p2"&&prev!==ctl.phase)renderP2()}
+    renderCtl();
+  }catch(e){status("Can't reach the server. Retrying… ("+String(e&&e.message||e).slice(0,140)+")")}
+  busyState=false;
+}
+async function pollPlans(){
+  if(busyPlans||view!=="p2"||$("#p2body").classList.contains("hidden"))return;busyPlans=true;
+  try{applyPlans(await run("getPlans",planGroup))}catch(e){}
+  busyPlans=false;
+}
+setInterval(pollState,8000);
+setInterval(pollPlans,5000);
+
+/* ===== facilitator ===== */
+$("#facLink").addEventListener("click",()=>{if(token){show("fac");return}$("#pwModal").classList.remove("hidden");$("#pw").value="";$("#pwMsg").textContent="";$("#pw").focus()});
+$("#pwX").addEventListener("click",()=>$("#pwModal").classList.add("hidden"));
+$("#pw").addEventListener("keydown",e=>{if(e.key==="Enter")$("#pwGo").click()});
+$("#pwGo").addEventListener("click",async()=>{
+  $("#pwGo").disabled=true;$("#pwMsg").textContent="Checking…";
+  try{token=await run("adminLogin",$("#pw").value);
+    $("#pwModal").classList.add("hidden");$("#facTab").classList.remove("hidden");$("#facLink").textContent="Facilitator dashboard";show("fac");
+  }catch(e){$("#pwMsg").textContent=/password/i.test(String(e&&e.message))?"Incorrect password.":"Couldn't reach the server."}
+  $("#pwGo").disabled=false;
+});
+async function pollAdmin(){
+  if(!token||view!=="fac"||busyAdmin)return;busyAdmin=true;
+  try{admin=await run("adminGetAll",token);ctl={phase:admin.state.phase,reveal:admin.state.reveal};
+    plans=admin.plans;if(admin.sheetUrl&&/^https:\/\//.test(admin.sheetUrl)){$("#sheetLink").href=admin.sheetUrl;$("#sheetLink").classList.remove("hidden")}
+    renderFac();
+  }catch(e){if(String(e&&e.message).includes("expired")){token=null;$("#facTab").classList.add("hidden");$("#facLink").textContent="Facilitator login";show("p1")}else $("#ctlMsg").textContent="Couldn't refresh. Retrying…"}
+  busyAdmin=false;
+}
+setInterval(pollAdmin,5000);
+$("#phaseSeg").addEventListener("click",e=>{const b=e.target.closest("[data-ph]");if(b)writeCtl({phase:b.dataset.ph})});
+$("#revealT").addEventListener("change",e=>writeCtl({reveal:e.target.checked}));
+$("#bigT").addEventListener("change",e=>document.body.classList.toggle("big",e.target.checked));
+let ctlBusy=false;
+async function writeCtl(p){
+  if(!token||ctlBusy)return;ctlBusy=true;
+  const next={...ctl,...p};$("#ctlMsg").textContent="Updating…";
+  try{await run("adminSetState",token,next.phase,!!next.reveal);ctl=next;$("#ctlMsg").textContent="Updated ✓ Teachers' screens follow within about 8 seconds."}
+  catch(e){$("#ctlMsg").textContent="Couldn't update. Try again."}
+  ctlBusy=false;renderCtl();
+}
+function renderCtl(){$$("#phaseSeg .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.ph===ctl.phase));$("#revealT").checked=!!ctl.reveal}
+$("#facNav").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;facSec=b.dataset.f;$$("#facNav .chip").forEach(c=>c.setAttribute("aria-pressed",c===b));renderFac()});
+function renderFac(){
+  renderCtl();
+  ["mcq","open","people","plans"].forEach(x=>$("#f-"+x).classList.toggle("hidden",x!==facSec));
+  if(!admin){$("#f-"+facSec).innerHTML=`<p class="muted">Loading…</p>`;return}
+  const R=admin.responses,n=R.length,K=admin.key.answers,W=admin.key.why;
+  if(facSec==="mcq"){
+    const avg=n?(R.reduce((s,r)=>s+(r.score||0),0)/n):0;
+    const pc=MCQ.map((m,i)=>n?R.filter(r=>r.mcq[i]===K[i]).length/n:0);
+    const hard=n?pc.indexOf(Math.min(...pc)):-1;
+    $("#f-mcq").innerHTML=`<div class="stats" style="margin-bottom:16px">
+      <div class="card"><div class="stat">${n}</div><div class="muted">teachers submitted</div></div>
+      <div class="card"><div class="stat">${n?avg.toFixed(1):"–"}<span style="font-size:.45em"> / ${MCQ.length}</span></div><div class="muted">average score</div></div>
+      <div class="card"><div class="stat">${hard>-1?"Q"+(hard+1):"–"}</div><div class="muted">${hard>-1?"hardest question ("+Math.round(pc[hard]*100)+"% correct)":"hardest question"}</div></div></div>
+      ${n?"":`<div class="banner">No answers yet. Results appear here as teachers submit (refreshes every 5 seconds).</div>`}`+
+      MCQ.map((m,i)=>`<div class="card"><h3><span class="qn">${i+1}.</span>${esc(m.q)} <span class="muted">· ${Math.round(pc[i]*100)}% correct</span></h3>${m.o.map((o,j)=>{const c=R.filter(r=>r.mcq[i]===j).length,p=n?Math.round(c/n*100):0;
+        return `<div class="bar"><div class="track"><div class="fill ${j===K[i]?"c":""}" style="width:${p}%"></div><span>${j===K[i]?"✓ ":""}${esc(o)}</span></div><div class="pct">${c}</div></div>`}).join("")}<div class="why">${esc(W[i])}</div></div>`).join("");
+  }
+  if(facSec==="open"){
+    const list=R.filter(r=>(openG==="all"||r.group===openG)&&String(r.open[openQ]||"").trim());
+    $("#f-open").innerHTML=`<div class="card"><div class="seg">${OPEN.map((q,i)=>`<button class="chip" data-q="${i}" aria-pressed="${i===openQ}">Question ${MCQ.length+i+1}</button>`).join("")}</div>
+      <h2 style="margin-top:14px">${esc(OPEN[openQ].q)}</h2>
+      <div class="seg" style="margin-top:10px"><button class="chip" data-g="all" aria-pressed="${openG==="all"}">All groups</button>${GROUPS.map(g=>`<button class="chip" data-g="${g.id}" aria-pressed="${openG===g.id}">${esc(g.name)}</button>`).join("")}</div>
+      <p class="muted" style="margin:10px 0 0">${list.length} answer${list.length===1?"":"s"}</p></div>
+      <div class="wall">${list.map(r=>`<div class="note"><b>${esc(r.name)} · ${esc(gName(r.group))}</b>${esc(r.open[openQ])}</div>`).join("")||`<p class="muted">No answers yet.</p>`}</div>`;
+  }
+  if(facSec==="people"){
+    const s=[...R].sort((a,b)=>(a.group||"").localeCompare(b.group||"")||(a.name||"").localeCompare(b.name||""));
+    $("#f-people").innerHTML=`<div class="card"><h2>Who has submitted (${n})</h2><table class="stack"><thead><tr><th>Name</th><th>Group</th><th class="n">Score</th><th>Time</th></tr></thead><tbody>${s.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(gName(r.group))}</td><td class="n">${esc(r.score)}/${MCQ.length}</td><td>${r.at?esc(new Date(r.at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})):""}</td></tr>`).join("")}</tbody></table>${n?"":`<p class="muted">No submissions yet.</p>`}</div>`;
+  }
+  if(facSec==="plans"){
+    const filled=g=>FIELDS.filter(f=>plans[g+"__"+f.id]&&String(plans[g+"__"+f.id].text).trim()).length;
+    $("#f-plans").innerHTML=`<div class="card"><div class="seg">${GROUPS.map(g=>`<button class="chip" data-pg="${g.id}" aria-pressed="${planG===g.id}">${esc(g.name)} <small>${filled(g.id)}/${FIELDS.length} boxes</small></button>`).join("")}</div></div>
+      <div class="card planview"><h2>${esc(gName(planG))}: pilot lesson plan</h2>${FIELDS.map((f,i)=>{const d=plans[planG+"__"+f.id];return `<div class="pf"><h3>${i+1}. ${esc(f.label)}</h3><div>${d&&String(d.text).trim()?esc(d.text):'<span class="muted">Not filled in yet</span>'}</div></div>`}).join("")}</div>`;
+  }
+}
+$("#f-open").addEventListener("click",e=>{const q=e.target.closest("[data-q]"),g=e.target.closest("[data-g]");if(q){openQ=+q.dataset.q;renderFac()}if(g){openG=g.dataset.g;renderFac()}});
+$("#f-plans").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(b){planG=b.dataset.pg;renderFac()}});
+
+/* ===== boot ===== */
+const saved=LS.get("mapw_ans2");if(saved&&Array.isArray(saved.mcq)&&saved.mcq.length===MCQ.length)ans=saved;
+submitted=!!LS.get("mapw_sub2");
+if(submitted)$("#subMsg").textContent="You've already submitted. You can edit and update.";
+renderJoin();show(me.name?"p1":"join");
+pollState();
+}
+</script>
+</body>
+</html>
